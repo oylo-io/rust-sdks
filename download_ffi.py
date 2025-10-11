@@ -69,7 +69,9 @@ def target_arch():
 def ffi_version():
     file = os.path.join(os.path.dirname(__file__), "livekit-ffi", "Cargo.toml")
     with open(file, "r") as f:
-        return re.search(r'version\s*=\s*"(\d+\.\d+\.\d+)"', f.read()).group(1)
+        base_version = re.search(r'version\s*=\s*"(\d+\.\d+\.\d+)"', f.read()).group(1)
+        # Use custom version with -no_adapt suffix
+        return base_version + "-no_adapt"
 
 
 def download_ffi(platform, arch, version, output):
