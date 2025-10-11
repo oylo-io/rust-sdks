@@ -147,17 +147,12 @@ bool VideoTrackSource::InternalSource::on_captured_frame(
                                   static_cast<uint32_t>(buffer->height())};
   }
 
-  int adapted_width, adapted_height, crop_width, crop_height, crop_x, crop_y;
-  if (!AdaptFrame(buffer->width(), buffer->height(), aligned_timestamp_us,
-                  &adapted_width, &adapted_height, &crop_width, &crop_height,
-                  &crop_x, &crop_y)) {
-    return false;
-  }
-
-  if (adapted_width != frame.width() || adapted_height != frame.height()) {
-    buffer = buffer->CropAndScale(crop_x, crop_y, crop_width, crop_height,
-                                  adapted_width, adapted_height);
-  }
+  // FIX: Bypass AdaptFrame() to disable automatic resolution adaptation.
+  // WebRTC's AdaptedVideoTrackSource::AdaptFrame() downscales video based on
+  // encoder bandwidth requests (VideoSinkWants), but AddOrUpdateSink() is
+  // private so we cannot intercept those requests. The only solution is to
+  // skip adaptation entirely and pass frames through at original resolution.
+  // This prevents WebRTC from downscaling (e.g., 896x512 → 336x192).
 
   webrtc::VideoRotation rotation = frame.rotation();
   if (apply_rotation() && rotation != webrtc::kVideoRotation_0) {
